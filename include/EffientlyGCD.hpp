@@ -13,37 +13,57 @@
 #include "../src/ProductTree.h"
 #include "../src/RemainderTree.h"
 
+std::vector<mpz_class> EffientlyGCD(const std::vector<mpz_class>& bigNumbers) {
+    // TODO: exclude unexpected numbers
+    auto size = bigNumbers.size();
+    std::vector<mpz_class> cpBigNumbers, gcdVector;
+    cpBigNumbers.reserve(size), gcdVector.reserve(size);
+    for (const auto& bnum : bigNumbers) {
+        if (bnum < 0) gcdVector.push_back(bnum);
+        else if (bnum == 0) gcdVector.emplace_back(1);
+        else {
+            gcdVector.emplace_back(0);
+            cpBigNumbers.push_back(bnum);
+        }
+    }
 
-std::list<mpz_class> EffientlyGCD(const std::list<mpz_class>& bigNumbers) {
-    std::list<mpz_class> gcdList;
     // TODO: STEP1 - build product tree from RSA moduli
-    auto *productTree = new ProductTree(bigNumbers);
+    auto *productTree = new ProductTree(cpBigNumbers);
+    std::list<mpz_class> productLeaf = productTree->preOrderGetLeafList();
 #if BOOST_TEST_MODULE == EfficientlyGCDTestCases
-    auto root = productTree->getNodeData();
-    BOOST_TEST_MESSAGE("\nProduct tree has been built success. Product tree's root bits length: " << root.get_str(2).size());
+    {
+        BOOST_REQUIRE_MESSAGE(productLeaf.size() == cpBigNumbers.size(), "Product tree leaf number");
+        bool testFlag = true;
+        auto p = productLeaf.begin();
+        auto b = cpBigNumbers.begin();
+        for (; p != productLeaf.end() && b != cpBigNumbers.end(); p++, b++) {
+            if (*p != *b) testFlag = false;
+        }
+        BOOST_REQUIRE_MESSAGE(testFlag, "Product tree leaf order");
+        BOOST_TEST_MESSAGE("Product tree:\n" << *productTree);
+    }
 #endif
+
+
     // TODO: STEP2 - compute remainder tree with `P mod N^2`
     auto *remainderTree = new RemainderTree((const ProductTree *&)productTree);
     std::list<mpz_class> remainderLeaf = remainderTree->preOrderGetLeafList();
-    std::list<mpz_class> productLeaf = productTree->preOrderGetLeafList();
-#if BOOST_TEST_MODULE == EfficientlyGCDTestCases
-    BOOST_TEST_MESSAGE("Remainder tree has built success. Remainder tree's leaf list:");
-    for (const auto& remainder: remainderLeaf) {
-        BOOST_TEST_MESSAGE("\t\t" << remainder.get_str(16).substr(0, 16) << "...");
-    }
-    BOOST_REQUIRE_MESSAGE(productLeaf.size() == bigNumbers.size(), "Product tree leaf number");
-    BOOST_REQUIRE_MESSAGE(productLeaf == bigNumbers, "Product tree leaf order");
-#endif
+
     // TODO: STEP3 - compute `gcd(N, z/N)`
     mpz_t quotientNumber, gcdNumber;
     mpz_inits(quotientNumber, gcdNumber, NULL);
-    for (auto N = productLeaf.begin(), z = remainderLeaf.begin(); N != productLeaf.end() && z != remainderLeaf.end(); N++, z++) {
+    auto N = productLeaf.begin(), z = remainderLeaf.begin();
+    for (auto& gcd: gcdVector) {
+        if (gcd != 0) continue;
         mpz_div(quotientNumber, z->get_mpz_t(), N->get_mpz_t());
         mpz_gcd(gcdNumber, quotientNumber, N->get_mpz_t());
-        gcdList.emplace_back(gcdNumber);
+        gcd = mpz_class(gcdNumber);
+        N++, z++;
     }
     mpz_clears(quotientNumber, gcdNumber, NULL);
-    return gcdList;
+    delete productTree;
+    delete remainderTree;
+    return gcdVector;
 }
 
 #endif

@@ -6,16 +6,17 @@
 #define KEYMININGALGORITHM_PRODUCTTREE_H
 
 #include <gmpxx.h>
-#include <list>
+#include <vector>
 
-#include "AbstractTree.h"
+#include "BinTree/AbstractBinTree.h"
 
-class ProductTree : public AbstractTree<mpz_class>{
+class ProductTree : public AbstractBinTree<mpz_class>{
 public:
-    explicit ProductTree(const std::list<mpz_class>& leafList);
+    explicit ProductTree(const std::vector<mpz_class>& leafList);
 
-    ProductTree &operator=(const AbstractTree<mpz_class> &copy);
+    ProductTree &operator=(const AbstractBinTree<mpz_class> &copy);
 };
 
+std::ostream& operator<<(std::ostream& out, const ProductTree& bt);
 
 #endif //KEYMININGALGORITHM_PRODUCTTREE_H

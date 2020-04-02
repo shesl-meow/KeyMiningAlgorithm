@@ -24,6 +24,6 @@ set_target_properties(EfficientlyGCD
 )
 target_link_libraries(EfficientlyGCD gmp boost_unit_test_framework)
 
-add_executable(EfficientlyGCDTestCases ./test/EfficientlyGCDTestCases.cpp)
-target_link_libraries(EfficientlyGCDTestCases boost_unit_test_framework EfficientlyGCD)
-add_test(NAME EfficientlyGCDTest COMMAND EfficientlyGCDTestCases)
+add_executable(EfficientlyGCDBoostTest test/EfficientlyGCDBoostTest.cpp)
+target_link_libraries(EfficientlyGCDBoostTest boost_unit_test_framework EfficientlyGCD)
+add_test(NAME EfficientlyGCDTest COMMAND EfficientlyGCDBoostTest)
