@@ -13,7 +13,7 @@
 
 class RemainderTree : public AbstractBinTree<mpz_class> {
 public:
-    explicit RemainderTree(const ProductTree *&relatedProductTree);
+    explicit RemainderTree(const ProductTree *relatedProductTree);
 };
 
 

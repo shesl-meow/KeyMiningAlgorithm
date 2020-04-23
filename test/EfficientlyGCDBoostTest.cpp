@@ -5,8 +5,9 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE EfficientlyGCDTestCases
 #include <boost/test/included/unit_test.hpp>
+#include <boost/timer/timer.hpp>
 
-#include <EffientlyGCD.hpp>
+#include <EffientlyGcd.h>
 
 #include "EfficientlyGCDTestCases.h"
 
@@ -28,11 +29,90 @@ mpz_class generatePrime(size_t nbits) {
     return mpz_class(prime);
 }
 
+void testEfficientlyGcd(const std::vector<mpz_class> &productVec, const std::vector<mpz_class> &gcdVec, const std::string &msg = "Correctness")
+{
+    boost::timer::cpu_timer timer;
+    auto *effientlyGcd = new EffientlyGcd(productVec);
+    BOOST_TEST_MESSAGE("Init : " << timer.format());
+    effientlyGcd->S0_excludeUnexpectedNumbers();
+    BOOST_TEST_MESSAGE("STEP0: " << timer.format());
+    effientlyGcd->S1_buildProductTree();
+    BOOST_TEST_MESSAGE("STEP1: " << timer.format());
+    effientlyGcd->S2_buildRemainderTree();
+    BOOST_TEST_MESSAGE("STEP2: " << timer.format());
+    effientlyGcd->S3_getGcdsFromRTree();
+    BOOST_TEST_MESSAGE("STEP3: " << timer.format());
+    auto remainderLeaf = effientlyGcd->getGcdVector();
+//    for (uint i = 0; i < gcdVec.size(); i++) {
+//        std::cout << remainderLeaf->at(i).get_str(16) << "\t" << gcdVec[i].get_str(16) << std::endl;
+//    }
+    BOOST_REQUIRE_MESSAGE(*remainderLeaf == gcdVec, msg);
+    BOOST_TEST_MESSAGE("Test time" << timer.format());
+    delete effientlyGcd;
+}
 
 
-BOOST_AUTO_TEST_CASE ( egcd_test ) {
+BOOST_AUTO_TEST_CASE ( egcd_test )
+{
     for (const auto& testCase : egcdTestCases) {
-        auto gcdVector = EffientlyGCD(testCase.bigNumbersVector);
-        BOOST_REQUIRE_MESSAGE(gcdVector == testCase.expectedRemaindersVector, testCase.testMessage);
+        testEfficientlyGcd(testCase.bigNumbersVector, testCase.expectedRemaindersVector, testCase.testMessage);
     }
+}
+
+BOOST_AUTO_TEST_CASE( tgcd_test )
+{
+    mpz_t product;
+    mpz_init(product);
+    for (const auto& testCase : tgcdTestCases) {
+        std::vector<mpz_class> primeVec, productVec, gcdVec(testCase.primeCount / 2, 1);
+        primeVec.reserve(testCase.primeCount);
+        productVec.reserve(testCase.primeCount / 2 + testCase.prodPairsVec.size());
+        gcdVec.reserve(testCase.primeCount / 2 + testCase.prodPairsVec.size());
+
+        for (uint i = 0u; i < testCase.primeCount; ++i) {
+            primeVec.emplace_back(generatePrime(testCase.primeBits));
+        }
+        for (uint i = 0u; i < testCase.primeCount / 2; i++) {
+            mpz_mul(product, primeVec[2*i].get_mpz_t(), primeVec[2*i + 1].get_mpz_t());
+            productVec.emplace_back(product);
+        }
+        for (auto ppv : testCase.prodPairsVec) {
+            mpz_ptr first = primeVec[ppv.first].get_mpz_t(), second = primeVec[ppv.second].get_mpz_t();
+            mpz_mul(product, first, second);
+            productVec.emplace_back(product);
+            gcdVec.emplace_back(product);
+            gcdVec[ppv.first / 2] *= primeVec[ppv.first];
+            gcdVec[ppv.second / 2] *= primeVec[ppv.second];
+        }
+        testEfficientlyGcd(productVec, gcdVec);
+    }
+    mpz_clear(product);
+}
+
+BOOST_AUTO_TEST_CASE( time_cost_test_1024 )
+{
+    mpz_t product;
+    mpz_init(product);
+    boost::timer::cpu_timer timer;
+    uint32_t PRCOUNT = 2046, PRBITS = 1024;
+    std::vector<mpz_class> primeVec;
+    primeVec.reserve(PRCOUNT);
+    for (uint i = 0u; i < PRCOUNT; i++) primeVec.emplace_back(generatePrime(PRBITS));
+    BOOST_TEST_MESSAGE("Init random prime time : " << timer.format());
+
+    uint32_t PDCOUNT = 1024;
+    std::vector<mpz_class> productVec, gcdVec(PDCOUNT, 1);
+    productVec.reserve(PDCOUNT);
+    for (uint i = 0; i < PDCOUNT - 1; i++) {
+        mpz_mul(product, primeVec[2*i].get_mpz_t(), primeVec[2*i+1].get_mpz_t());
+        productVec.emplace_back(product);
+    }
+    mpz_mul(product, primeVec[0].get_mpz_t(), primeVec[PRCOUNT - 1].get_mpz_t());
+    productVec.emplace_back(product);
+    gcdVec[0] = primeVec[0];
+    gcdVec[PDCOUNT - 1] = mpz_class(product);
+    gcdVec[PDCOUNT - 2] = primeVec[PRCOUNT - 1];
+    BOOST_TEST_MESSAGE("Init prime product time: " << timer.format());
+    mpz_clear(product);
+    testEfficientlyGcd(productVec, gcdVec);
 }

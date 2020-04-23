@@ -4,7 +4,7 @@
 
 #include "RemainderTree.h"
 
-RemainderTree::RemainderTree(const ProductTree *&relatedProductTree): AbstractBinTree(*relatedProductTree) {
+RemainderTree::RemainderTree(const ProductTree *relatedProductTree): AbstractBinTree(*relatedProductTree) {
     mpz_t square, remainder;
     mpz_inits(square, remainder, NULL);
     this->preOrderForEach([&square, &remainder](AbstractBinTree *root) -> void{
