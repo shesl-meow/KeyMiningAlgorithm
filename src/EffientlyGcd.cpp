@@ -58,12 +58,8 @@ const std::vector<mpz_class> *EffientlyGcd::getGcdVector() const {
     return &(this->finalGcdsVec);
 }
 
-unsigned long long EffientlyGcd::computeSpaceSize() const {
-    return 0;
-}
-
 EffientlyGcd::~EffientlyGcd() {
-    delete this->productTree;
-    delete this->remainderTree;
+    this->productTree->delete_tree();
+    this->remainderTree->delete_tree();
 }
 

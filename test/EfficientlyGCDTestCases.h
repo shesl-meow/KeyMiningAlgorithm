@@ -73,9 +73,12 @@ struct TgcdTestCaseStruct {
 };
 
 std::vector<TgcdTestCaseStruct> tgcdTestCases = {
+        TgcdTestCaseStruct(4096u, 1024u, {std::make_pair(2u, 7u), std::make_pair(2000u, 1000u), std::make_pair(16u, 4095u)}),
         TgcdTestCaseStruct(2048u, 1024u, {std::make_pair(2u, 7u), std::make_pair(2000u, 1000u), std::make_pair(16u, 2047u)}),
         TgcdTestCaseStruct(1024u, 1024u, {std::make_pair(0u, 2u), std::make_pair(3u, 1023u)}),
-        TgcdTestCaseStruct(512u, 1024u, {std::make_pair(0u, 5u), std::make_pair(3u, 511u)})
+        TgcdTestCaseStruct(512u, 1024u, {std::make_pair(0u, 5u), std::make_pair(3u, 511u)}),
+        TgcdTestCaseStruct(512u, 512u, {std::make_pair(0u, 5u), std::make_pair(3u, 511u)}),
+        TgcdTestCaseStruct(512u, 256u, {std::make_pair(0u, 5u), std::make_pair(3u, 511u)}),
 };
 
 #endif //KEYMININGALGORITHM_EFFICIENTLYGCDTESTCASES_H

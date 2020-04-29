@@ -2,48 +2,43 @@
 // Created by 佘崧林 on 2020/1/22.
 //
 #include <cmath>
+#include <queue>
 #include "ProductTree.h"
 #include "./BinTree/BinTreeMap.h"
 
 ProductTree::ProductTree(const std::vector<mpz_class>& leafVector) : AbstractBinTree(mpz_class(0)){
-    std::list<AbstractBinTree *> processQueue, bufferQueue1, bufferQueue2;
+    auto *processQueue = new std::queue<AbstractBinTree *>(), *builtQueue = new std::queue<AbstractBinTree *>();
     for (const auto &leaf : leafVector) {
-        bufferQueue1.push_back(new AbstractBinTree(leaf));
+        processQueue->push(new AbstractBinTree(leaf));
     }
-    size_t processSize = 0, bufferSize1 = bufferQueue1.size();
 
-    mpz_t productData;
-    mpz_init(productData);
-    // TODO: Optimize ME
-    while (bufferSize1 > 1) {
-        while (bufferSize1 > 0) {
-            assert(processQueue.empty());
-
-            processSize = pow(2u, floor( log2l(bufferSize1) ));
-            auto endPosition = bufferQueue1.begin();
-            std::advance(endPosition, processSize);
-            processQueue.splice(processQueue.end(), bufferQueue1, bufferQueue1.begin(), endPosition);
-            bufferSize1 -= processSize;
-
-            for (; processSize > 1; processSize--) {
-                AbstractBinTree *first = processQueue.front();
-                processQueue.pop_front();
-                AbstractBinTree *second = processQueue.front();
-                processQueue.pop_front();
-                mpz_mul(productData, first->getNodeData().get_mpz_t(), second->getNodeData().get_mpz_t());
-                auto *parentTree = new AbstractBinTree(mpz_class(productData), first, second);
-                processQueue.push_back(parentTree);
-            }
-            bufferQueue2.splice(bufferQueue2.end(), processQueue, processQueue.begin());
+    mpz_t product;
+    mpz_init(product);
+    while (processQueue->size() > 1) {
+        while (processQueue->size() > 1) {
+            auto first = processQueue->front();
+            processQueue->pop();
+            auto second = processQueue->front();
+            processQueue->pop();
+            mpz_mul(product, first->getNodeData().get_mpz_t(), second->getNodeData().get_mpz_t());
+            auto parent = new AbstractBinTree(mpz_class(product), first, second);
+            builtQueue->push(parent);
         }
-        bufferQueue1.splice(bufferQueue1.begin(), bufferQueue2);
-        bufferSize1 = bufferQueue1.size();
+        if (!processQueue->empty()) {
+            builtQueue->push(processQueue->front());
+            processQueue->pop();
+        }
+        auto temp = processQueue;
+        processQueue = builtQueue;
+        builtQueue = temp;
     }
-    mpz_clear(productData);
+    mpz_clear(product);
 
-    AbstractBinTree<mpz_class> *finalTree = bufferQueue1.front();
-    *this = *finalTree;
-    delete finalTree;
+    auto finalTree = processQueue->front();
+    this->leftChild = finalTree->getLeftChild();
+    this->rightChild = finalTree->getRightChild();
+    this->nodeData = finalTree->getNodeData();
+    finalTree->delete_node();
 }
 
 ProductTree &ProductTree::operator=(const AbstractBinTree<mpz_class> &copy) {

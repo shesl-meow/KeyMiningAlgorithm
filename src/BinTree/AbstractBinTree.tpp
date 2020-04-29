@@ -3,9 +3,10 @@
 //
 #pragma once
 #include "./AbstractBinTree.h"
+#include <stack>
 
 template<typename DataType>
-AbstractBinTree<DataType>::~AbstractBinTree() {
+void AbstractBinTree<DataType>::delete_tree() {
     if (this->leftChild != nullptr) {
         delete this->leftChild;
         this->leftChild = nullptr;
@@ -14,7 +15,10 @@ AbstractBinTree<DataType>::~AbstractBinTree() {
         delete this->rightChild;
         this->rightChild = nullptr;
     }
+    delete this;
 }
+template<typename DataType>
+void AbstractBinTree<DataType>::delete_node() { delete this; }
 
 template<typename DataType>
 AbstractBinTree<DataType>::AbstractBinTree(const AbstractBinTree &copy) {
@@ -53,10 +57,16 @@ unsigned int AbstractBinTree<DataType>::getDepth() const {
 }
 
 template<typename DataType>
-void AbstractBinTree<DataType>::preOrderForEach(const std::function<void(AbstractBinTree<mpz_class> *)> &exec) {
-    exec(this);
-    if (this->leftChild != nullptr) this->leftChild->preOrderForEach(exec);
-    if (this->rightChild != nullptr) this->rightChild->preOrderForEach(exec);
+void AbstractBinTree<DataType>::preOrderForEach(const std::function<void(AbstractBinTree<DataType> *)> &exec) {
+    std::stack<AbstractBinTree *> execStack;
+    execStack.push(this);
+    while (!execStack.empty()) {
+        AbstractBinTree *itor = execStack.top();
+        execStack.pop();
+        exec(itor);
+        if (itor->rightChild != nullptr) execStack.push(itor->rightChild);
+        if (itor->leftChild != nullptr) execStack.push(itor->leftChild);
+    }
 }
 
 template<typename DataType>

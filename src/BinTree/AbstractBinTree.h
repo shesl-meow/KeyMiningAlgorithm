@@ -11,13 +11,15 @@
 template <typename DataType>
 class AbstractBinTree {
 protected:
+    ~AbstractBinTree() {}
     DataType nodeData;
     AbstractBinTree *parentTree = nullptr;
     AbstractBinTree *leftChild = nullptr;
     AbstractBinTree *rightChild = nullptr;
 
 public:
-    ~AbstractBinTree();
+    void delete_node();
+    void delete_tree();
     AbstractBinTree(const AbstractBinTree &copy);
     explicit AbstractBinTree(const DataType &data): nodeData(data) {}
     AbstractBinTree(const DataType &data, AbstractBinTree *lt, AbstractBinTree *rt);
@@ -31,7 +33,7 @@ public:
 
     void setNodeData(const DataType &data) { this->nodeData = data; }
     void setParent(AbstractBinTree *data) { this->parentTree = data; }
-    void preOrderForEach(const std::function<void(AbstractBinTree<mpz_class> *)> &exec);
+    void preOrderForEach(const std::function<void(AbstractBinTree<DataType> *)> &exec);
     std::list<DataType> preOrderGetLeafList();
 };
 

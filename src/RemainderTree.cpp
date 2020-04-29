@@ -3,6 +3,7 @@
 //
 
 #include "RemainderTree.h"
+#include <boost/timer/timer.hpp>
 
 RemainderTree::RemainderTree(const ProductTree *relatedProductTree): AbstractBinTree(*relatedProductTree) {
     mpz_t square, remainder;

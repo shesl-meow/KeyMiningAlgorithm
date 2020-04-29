@@ -30,7 +30,7 @@ public:
     void S3_getGcdsFromRTree();
 
     const std::vector<mpz_class> *getGcdVector() const;
-    unsigned long long computeSpaceSize() const;
+    const ProductTree *getProductTree() const { return this->productTree; }
     ~EffientlyGcd();
 };
 

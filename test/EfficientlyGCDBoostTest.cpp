@@ -37,6 +37,7 @@ void testEfficientlyGcd(const std::vector<mpz_class> &productVec, const std::vec
     effientlyGcd->S0_excludeUnexpectedNumbers();
     BOOST_TEST_MESSAGE("STEP0: " << timer.format());
     effientlyGcd->S1_buildProductTree();
+//    std::cout << *(effientlyGcd->getProductTree()) << std::endl;
     BOOST_TEST_MESSAGE("STEP1: " << timer.format());
     effientlyGcd->S2_buildRemainderTree();
     BOOST_TEST_MESSAGE("STEP2: " << timer.format());
@@ -115,4 +116,41 @@ BOOST_AUTO_TEST_CASE( time_cost_test_1024 )
     BOOST_TEST_MESSAGE("Init prime product time: " << timer.format());
     mpz_clear(product);
     testEfficientlyGcd(productVec, gcdVec);
+}
+
+
+BOOST_AUTO_TEST_CASE ( time_cost_graph_till_8092 )
+{
+    boost::timer::cpu_timer timer;
+    uint32_t PRCOUNT = 2u << 13u, PRBITS = 1024;
+    std::vector<mpz_class> primeVec;
+    primeVec.reserve(PRCOUNT);
+    for (uint i = 0u; i < PRCOUNT; i++) primeVec.emplace_back(generatePrime(PRBITS));
+    BOOST_TEST_MESSAGE("Init random prime time : " << timer.format());
+
+    std::vector<mpz_class> productVec;
+    mpz_t product;
+    mpz_init(product);
+    productVec.reserve(PRCOUNT / 2);
+    for (uint i = 0; i < PRCOUNT / 2; i++) {
+        mpz_mul(product, primeVec[2*i].get_mpz_t(), primeVec[2*i+1].get_mpz_t());
+        productVec.emplace_back(product);
+    }
+    mpz_clear(product);
+
+    uint32_t PDUNIT = 512;
+    for (uint i = 1u; PDUNIT * i <= PRCOUNT / 2; i++) {
+        std::vector<mpz_class> pdv(productVec.begin(), productVec.begin() + PDUNIT * i);
+        boost::timer::cpu_timer timer1, timer2;
+        auto *effientlyGcd = new EffientlyGcd(pdv);
+        effientlyGcd->S0_excludeUnexpectedNumbers();
+        effientlyGcd->S1_buildProductTree();
+        timer2.start();
+        effientlyGcd->S2_buildRemainderTree();
+        timer2.stop();
+        effientlyGcd->S3_getGcdsFromRTree();
+        timer1.stop();
+        delete effientlyGcd;
+        BOOST_TEST_MESSAGE(PDUNIT * i << ", " << timer1.elapsed().user / 1000000000.0 << ", " << timer2.elapsed().user / 1000000000.0);
+    }
 }
