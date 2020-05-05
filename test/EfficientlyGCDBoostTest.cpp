@@ -7,7 +7,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/timer/timer.hpp>
 
-#include <EffientlyGcd.h>
+#include <RSAEffientlyGcd.h>
 
 #include "EfficientlyGCDTestCases.h"
 
@@ -32,7 +32,7 @@ mpz_class generatePrime(size_t nbits) {
 void testEfficientlyGcd(const std::vector<mpz_class> &productVec, const std::vector<mpz_class> &gcdVec, const std::string &msg = "Correctness")
 {
     boost::timer::cpu_timer timer;
-    auto *effientlyGcd = new EffientlyGcd(productVec);
+    auto *effientlyGcd = new RSAEffientlyGcd(productVec);
     BOOST_TEST_MESSAGE("Init : " << timer.format());
     effientlyGcd->S0_excludeUnexpectedNumbers();
     BOOST_TEST_MESSAGE("STEP0: " << timer.format());
@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE( time_cost_test_1024 )
 }
 
 
-BOOST_AUTO_TEST_CASE ( time_cost_graph_till_8092 )
+BOOST_AUTO_TEST_CASE ( time_cost_graph_with_amount )
 {
     boost::timer::cpu_timer timer;
     uint32_t PRCOUNT = 2u << 13u, PRBITS = 1024;
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE ( time_cost_graph_till_8092 )
     for (uint i = 1u; PDUNIT * i <= PRCOUNT / 2; i++) {
         std::vector<mpz_class> pdv(productVec.begin(), productVec.begin() + PDUNIT * i);
         boost::timer::cpu_timer timer1, timer2;
-        auto *effientlyGcd = new EffientlyGcd(pdv);
+        auto *effientlyGcd = new RSAEffientlyGcd(pdv);
         effientlyGcd->S0_excludeUnexpectedNumbers();
         effientlyGcd->S1_buildProductTree();
         timer2.start();
@@ -153,4 +153,38 @@ BOOST_AUTO_TEST_CASE ( time_cost_graph_till_8092 )
         delete effientlyGcd;
         BOOST_TEST_MESSAGE(PDUNIT * i << ", " << timer1.elapsed().user / 1000000000.0 << ", " << timer2.elapsed().user / 1000000000.0);
     }
+}
+
+BOOST_AUTO_TEST_CASE ( time_cost_graph_with_bitlength )
+{
+    uint32_t PRCOUNT = 1024, PRBITS = 2048, PRBUNIT = 256;
+    std::vector<mpz_class> primeVec, productVec;
+    mpz_t product;
+    mpz_init(product);
+
+    for (uint i = 1u; PRBUNIT * i <= PRBITS; i++) {
+        primeVec.clear();
+        primeVec.reserve(PRCOUNT);
+        for (uint j = 0u; j < PRCOUNT; j++) primeVec.emplace_back(generatePrime(PRBUNIT * i));
+
+        productVec.clear();
+        productVec.reserve(PRCOUNT / 2);
+        for (uint j = 0; j < PRCOUNT / 2; j++) {
+            mpz_mul(product, primeVec[2*j].get_mpz_t(), primeVec[2*j+1].get_mpz_t());
+            productVec.emplace_back(product);
+        }
+
+        boost::timer::cpu_timer timer1, timer2;
+        auto *effientlyGcd = new RSAEffientlyGcd(productVec);
+        effientlyGcd->S0_excludeUnexpectedNumbers();
+        effientlyGcd->S1_buildProductTree();
+        timer2.start();
+        effientlyGcd->S2_buildRemainderTree();
+        timer2.stop();
+        effientlyGcd->S3_getGcdsFromRTree();
+        timer1.stop();
+        delete effientlyGcd;
+        BOOST_TEST_MESSAGE(PRBUNIT * i << ", " << timer1.elapsed().user / 1000000000.0 << ", " << timer2.elapsed().user / 1000000000.0);
+    }
+    mpz_clear(product);
 }
