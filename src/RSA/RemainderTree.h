@@ -8,8 +8,8 @@
 #include <gmpxx.h>
 #include <functional>
 
-#include "BinTree/AbstractBinTree.h"
-#include "ProductTree.h"
+#include "../BinTree/AbstractBinTree.h"
+#include "./ProductTree.h"
 
 class RemainderTree : public AbstractBinTree<mpz_class> {
 public:

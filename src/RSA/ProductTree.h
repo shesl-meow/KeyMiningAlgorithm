@@ -8,7 +8,7 @@
 #include <gmpxx.h>
 #include <vector>
 
-#include "BinTree/AbstractBinTree.h"
+#include "../BinTree/AbstractBinTree.h"
 
 class ProductTree : public AbstractBinTree<mpz_class>{
 public:

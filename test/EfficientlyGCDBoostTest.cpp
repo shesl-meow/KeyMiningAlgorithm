@@ -7,7 +7,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/timer/timer.hpp>
 
-#include <RSAEffientlyGcd.h>
+#include <RSA/EffientlyGcd.h>
 
 #include "EfficientlyGCDTestCases.h"
 
@@ -32,7 +32,7 @@ mpz_class generatePrime(size_t nbits) {
 void testEfficientlyGcd(const std::vector<mpz_class> &productVec, const std::vector<mpz_class> &gcdVec, const std::string &msg = "Correctness")
 {
     boost::timer::cpu_timer timer;
-    auto *effientlyGcd = new RSAEffientlyGcd(productVec);
+    auto *effientlyGcd = new EffientlyGcd(productVec);
     BOOST_TEST_MESSAGE("Init : " << timer.format());
     effientlyGcd->S0_excludeUnexpectedNumbers();
     BOOST_TEST_MESSAGE("STEP0: " << timer.format());
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE ( time_cost_graph_with_amount )
     for (uint i = 1u; PDUNIT * i <= PRCOUNT / 2; i++) {
         std::vector<mpz_class> pdv(productVec.begin(), productVec.begin() + PDUNIT * i);
         boost::timer::cpu_timer timer1, timer2;
-        auto *effientlyGcd = new RSAEffientlyGcd(pdv);
+        auto *effientlyGcd = new EffientlyGcd(pdv);
         effientlyGcd->S0_excludeUnexpectedNumbers();
         effientlyGcd->S1_buildProductTree();
         timer2.start();
@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_CASE ( time_cost_graph_with_bitlength )
         }
 
         boost::timer::cpu_timer timer1, timer2;
-        auto *effientlyGcd = new RSAEffientlyGcd(productVec);
+        auto *effientlyGcd = new EffientlyGcd(productVec);
         effientlyGcd->S0_excludeUnexpectedNumbers();
         effientlyGcd->S1_buildProductTree();
         timer2.start();

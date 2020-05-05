@@ -2,9 +2,9 @@
 // Created by 佘崧林 on 2020/4/16.
 //
 
-#include "RSAEffientlyGcd.h"
+#include "../../include/RSA/EffientlyGcd.h"
 
-void RSAEffientlyGcd::S0_excludeUnexpectedNumbers() {
+void EffientlyGcd::S0_excludeUnexpectedNumbers() {
     if (step != 0) return;
     auto size = rawNumbersVec.size();
     this->bigNumbers.reserve(size);
@@ -20,21 +20,21 @@ void RSAEffientlyGcd::S0_excludeUnexpectedNumbers() {
     step += 1;
 }
 
-void RSAEffientlyGcd::S1_buildProductTree() {
+void EffientlyGcd::S1_buildProductTree() {
     if (step != 1) return;
     delete this->productTree;
     this->productTree = new ProductTree(this->bigNumbers);
     step += 1;
 }
 
-void RSAEffientlyGcd::S2_buildRemainderTree() {
+void EffientlyGcd::S2_buildRemainderTree() {
     if (step != 2) return;
     delete this->remainderTree;
     this->remainderTree = new RemainderTree(productTree);
     step += 1;
 }
 
-void RSAEffientlyGcd::S3_getGcdsFromRTree() {
+void EffientlyGcd::S3_getGcdsFromRTree() {
     if (step != 3) return;
     mpz_t quotientNumber, gcdNumber;
     mpz_inits(quotientNumber, gcdNumber, NULL);
@@ -53,12 +53,12 @@ void RSAEffientlyGcd::S3_getGcdsFromRTree() {
     step += 1;
 }
 
-const std::vector<mpz_class> *RSAEffientlyGcd::getGcdVector() const {
+const std::vector<mpz_class> *EffientlyGcd::getGcdVector() const {
     if (step != 4) return nullptr;
     return &(this->finalGcdsVec);
 }
 
-RSAEffientlyGcd::~RSAEffientlyGcd() {
+EffientlyGcd::~EffientlyGcd() {
     this->productTree->delete_tree();
     this->remainderTree->delete_tree();
 }

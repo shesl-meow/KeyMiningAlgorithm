@@ -2,16 +2,16 @@
 // Created by 佘崧林 on 2020/4/16.
 //
 
-#ifndef KEYMININGALGORITHM_RSAEFFIENTLYGCD_H
-#define KEYMININGALGORITHM_RSAEFFIENTLYGCD_H
+#ifndef KEYMININGALGORITHM_EFFIENTLYGCD_H
+#define KEYMININGALGORITHM_EFFIENTLYGCD_H
 
 #include <vector>
 #include <gmpxx.h>
 
-#include "../src/ProductTree.h"
-#include "../src/RemainderTree.h"
+#include "../../src/RSA/ProductTree.h"
+#include "../../src/RSA/RemainderTree.h"
 
-class RSAEffientlyGcd {
+class EffientlyGcd {
 private:
     const std::vector<mpz_class>& rawNumbersVec;
     std::vector<mpz_class> finalGcdsVec;
@@ -22,7 +22,7 @@ private:
     RemainderTree *remainderTree = nullptr;
 
 public:
-    explicit RSAEffientlyGcd(const std::vector<mpz_class> &rnv) : rawNumbersVec(rnv) {}
+    explicit EffientlyGcd(const std::vector<mpz_class> &rnv) : rawNumbersVec(rnv) {}
 
     void S0_excludeUnexpectedNumbers();
     void S1_buildProductTree();
@@ -30,8 +30,8 @@ public:
     void S3_getGcdsFromRTree();
 
     const std::vector<mpz_class> *getGcdVector() const;
-    ~RSAEffientlyGcd();
+    ~EffientlyGcd();
 };
 
 
-#endif //KEYMININGALGORITHM_RSAEFFIENTLYGCD_H
+#endif //KEYMININGALGORITHM_EFFIENTLYGCD_H

@@ -2,7 +2,7 @@
 // Created by 佘崧林 on 2020/1/22.
 //
 
-#include "RemainderTree.h"
+#include "./RemainderTree.h"
 #include <boost/timer/timer.hpp>
 
 RemainderTree::RemainderTree(const ProductTree *relatedProductTree): AbstractBinTree(*relatedProductTree) {

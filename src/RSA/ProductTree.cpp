@@ -3,8 +3,8 @@
 //
 #include <cmath>
 #include <queue>
-#include "ProductTree.h"
-#include "./BinTree/BinTreeMap.h"
+#include "./ProductTree.h"
+#include "../BinTree/BinTreeMap.h"
 
 ProductTree::ProductTree(const std::vector<mpz_class>& leafVector) : AbstractBinTree(mpz_class(0)){
     auto *processQueue = new std::queue<AbstractBinTree *>(), *builtQueue = new std::queue<AbstractBinTree *>();

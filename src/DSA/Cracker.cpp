@@ -2,9 +2,9 @@
 // Created by 佘崧林 on 2020/5/5.
 //
 
-#include "DSACracker.h"
+#include "Cracker.h"
 
-void DSACracker::crack() {
+void Cracker::crack() {
     if (signature1 == nullptr || signature2 == nullptr) return;
     mpz_t t0, t1, t2, k;
     mpz_inits(t0, t1, t2, k, NULL);
@@ -27,6 +27,6 @@ void DSACracker::crack() {
     mpz_clears(t0, t1, t2, k, NULL);
 }
 
-DSACracker::~DSACracker() {
+Cracker::~Cracker() {
     delete this->prvKey;
 }

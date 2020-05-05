@@ -10,7 +10,7 @@ enable_testing()
 set(Boost_ADDITIONAL_VERSIONS "1.XX" "1.XX.0")
 
 # TODO: RSA Effiently gcd algorithm and it's test cases
-add_library(EfficientlyGCD ./src/ProductTree.cpp ./src/RemainderTree.cpp src/RSAEffientlyGcd.cpp)
+add_library(EfficientlyGCD src/RSA/ProductTree.cpp src/RSA/RemainderTree.cpp src/RSA/EffientlyGcd.cpp)
 target_include_directories(EfficientlyGCD
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
@@ -29,4 +29,4 @@ target_link_libraries(EfficientlyGCDBoostTest boost_unit_test_framework boost_ti
 add_test(NAME EfficientlyGCDTest COMMAND EfficientlyGCDBoostTest)
 
 # TODO: DSA private key cracker and it's test case
-add_library(DSAPrivateCracker src/DSAGetPrivate.cpp ./src/DSACracker.cpp)
+add_library(DSAPrivateCracker src/DSA/GetPrivate.cpp src/DSA/Cracker.cpp)
