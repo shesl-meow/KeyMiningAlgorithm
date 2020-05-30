@@ -148,5 +148,5 @@ __MACOSX/
 
 .DS_Store
 
-./test/gcds.txt
-./test/products.txt
+test/gcds.txt
+test/products.txt

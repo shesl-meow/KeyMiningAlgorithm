@@ -6,28 +6,12 @@
 #define BOOST_TEST_MODULE EfficientlyGCDTestCases
 #include <boost/test/included/unit_test.hpp>
 #include <boost/timer/timer.hpp>
+#include <utility>
 
 #include <RSA/EffientlyGcd.h>
+#include <CommonMethod.h>
 
 #include "EfficientlyGCDTestCases.h"
-
-mpz_class generatePrime(size_t nbits) {
-    static time_t seed;
-    static gmp_randstate_t random_state;
-    if (!seed) {
-        seed = time(nullptr);
-        gmp_randinit_mt(random_state);
-        gmp_randseed_ui(random_state, seed);
-    }
-
-    mpz_t prime; mpz_init(prime);
-    mpz_urandomb(prime, random_state, nbits);
-    mpz_nextprime(prime, prime);
-
-    mpz_class result = mpz_class(prime);
-    mpz_clear(prime);
-    return mpz_class(prime);
-}
 
 void testEfficientlyGcd(const std::vector<mpz_class> &productVec, const std::vector<mpz_class> &gcdVec, const std::string &msg = "Correctness")
 {
@@ -71,7 +55,7 @@ BOOST_AUTO_TEST_CASE( tgcd_test )
         gcdVec.reserve(testCase.primeCount / 2 + testCase.prodPairsVec.size());
 
         for (uint i = 0u; i < testCase.primeCount; ++i) {
-            primeVec.emplace_back(generatePrime(testCase.primeBits));
+            primeVec.emplace_back(randomPrimeWithBits(testCase.primeBits));
         }
         for (uint i = 0u; i < testCase.primeCount / 2; i++) {
             mpz_mul(product, primeVec[2*i].get_mpz_t(), primeVec[2*i + 1].get_mpz_t());
@@ -96,9 +80,7 @@ BOOST_AUTO_TEST_CASE( time_cost_test_1024 )
     mpz_init(product);
     boost::timer::cpu_timer timer;
     uint32_t PRCOUNT = 2046, PRBITS = 1024;
-    std::vector<mpz_class> primeVec;
-    primeVec.reserve(PRCOUNT);
-    for (uint i = 0u; i < PRCOUNT; i++) primeVec.emplace_back(generatePrime(PRBITS));
+    std::vector<mpz_class> primeVec = continousPrimes(randomPrimeWithBits(PRBITS), PRCOUNT);
     BOOST_TEST_MESSAGE("Init random prime time : " << timer.format());
 
     uint32_t PDCOUNT = 1024;
@@ -122,10 +104,8 @@ BOOST_AUTO_TEST_CASE( time_cost_test_1024 )
 BOOST_AUTO_TEST_CASE ( time_cost_graph_with_amount )
 {
     boost::timer::cpu_timer timer;
-    uint32_t PRCOUNT = 2u << 13u, PRBITS = 1024;
-    std::vector<mpz_class> primeVec;
-    primeVec.reserve(PRCOUNT);
-    for (uint i = 0u; i < PRCOUNT; i++) primeVec.emplace_back(generatePrime(PRBITS));
+    uint32_t PRCOUNT = 2u << 14u, PRBITS = 1024;
+    std::vector<mpz_class> primesVec = continousPrimes(randomPrimeWithBits(PRBITS), PRCOUNT);
     BOOST_TEST_MESSAGE("Init random prime time : " << timer.format());
 
     std::vector<mpz_class> productVec;
@@ -133,7 +113,7 @@ BOOST_AUTO_TEST_CASE ( time_cost_graph_with_amount )
     mpz_init(product);
     productVec.reserve(PRCOUNT / 2);
     for (uint i = 0; i < PRCOUNT / 2; i++) {
-        mpz_mul(product, primeVec[2*i].get_mpz_t(), primeVec[2*i+1].get_mpz_t());
+        mpz_mul(product, primesVec[2 * i].get_mpz_t(), primesVec[2 * i + 1].get_mpz_t());
         productVec.emplace_back(product);
     }
     mpz_clear(product);
@@ -165,7 +145,7 @@ BOOST_AUTO_TEST_CASE ( time_cost_graph_with_bitlength )
     for (uint i = 1u; PRBUNIT * i <= PRBITS; i++) {
         primeVec.clear();
         primeVec.reserve(PRCOUNT);
-        for (uint j = 0u; j < PRCOUNT; j++) primeVec.emplace_back(generatePrime(PRBUNIT * i));
+        for (uint j = 0u; j < PRCOUNT; j++) primeVec.emplace_back(randomPrimeWithBits(PRBUNIT * i));
 
         productVec.clear();
         productVec.reserve(PRCOUNT / 2);
@@ -187,4 +167,74 @@ BOOST_AUTO_TEST_CASE ( time_cost_graph_with_bitlength )
         BOOST_TEST_MESSAGE(PRBUNIT * i << ", " << timer1.elapsed().user / 1000000000.0 << ", " << timer2.elapsed().user / 1000000000.0);
     }
     mpz_clear(product);
+}
+
+BOOST_AUTO_TEST_CASE( write_prime_to_file )
+{
+    std::vector<mpz_class> productsVec, gcdsVec;
+    mpz_t prod1, prod2, delta, p1, p2;
+    mpz_inits(prod1, prod2, delta, p1, p2, NULL);
+    std::ofstream pfo("../test/products.txt", std::ofstream::out), gfo("../test/gcds.txt", std::ofstream::out);
+    const unsigned int PRMCOUNT = 1u << 18u;
+
+    mpz_set(p1, randomPrimeWithBits(1024).get_mpz_t());
+    mpz_nextprime(p2, p1);
+    mpz_mul(prod2, p1, p2);
+    pfo << PRMCOUNT << std::endl << mpz_class(prod2).get_str(16) << std::endl;
+    gfo << PRMCOUNT << std::endl << 1 << std::endl;
+
+    for (unsigned int i = 1u; i < PRMCOUNT; i++) {
+        mpz_set(prod1, prod2);
+        mpz_nextprime(p1, p2);
+        mpz_nextprime(p2, p1);
+        mpz_mul(prod2, p1, p2);
+        mpz_sub(delta, prod2, prod1);
+        pfo << mpz_class(delta).get_str(16) << std::endl;
+        gfo << 0 << std::endl;
+    }
+
+    pfo.close();
+    gfo.close();
+    productsVec.clear();
+    gcdsVec.clear();
+    mpz_clears(prod1, prod2, delta, p1, p2, NULL);
+}
+
+BOOST_AUTO_TEST_CASE ( read_prime_from_file )
+{
+    std::vector<mpz_class> productsVec, gcdsVec;
+    std::string pline, gline;
+    mpz_t product, pdelta, gcd, gdelta;
+    mpz_inits(product, pdelta, gcd, gdelta, NULL);
+    std::ifstream pfi("../test/products.txt"), gfi("../test/gcds.txt");
+    size_t size;
+
+    std::getline(pfi, pline);
+    size = std::stoi(pline);
+    productsVec.reserve(size);
+    pfi >> pline;
+    mpz_set_str(product, pline.c_str(), 16);
+    productsVec.emplace_back(product);
+    while (pfi >> pline) {
+        mpz_set_str(pdelta, pline.c_str(), 16);
+        mpz_add(product, product, pdelta);
+        productsVec.emplace_back(product);
+    }
+
+    std::getline(gfi, gline);
+    size = std::stoi(gline);
+    gcdsVec.reserve(size);
+    gfi >> gline;
+    mpz_set_str(gcd, gline.c_str(), 16);
+    productsVec.emplace_back(gcd);
+    while (gfi >> gline) {
+        mpz_set_str(gdelta, gline.c_str(), 16);
+        mpz_add(gcd, gcd, gdelta);
+        gcdsVec.emplace_back(gcd);
+    }
+
+    pfi.close();
+    gfi.close();
+    mpz_clears(product, pdelta, gcd, gdelta, NULL);
+    testEfficientlyGcd(productsVec, gcdsVec);
 }

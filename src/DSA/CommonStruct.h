@@ -34,12 +34,17 @@ struct DSAPublicKey {
     };
 };
 
-struct DSAPrivateKey{
+struct DSAPrivateKey {
     mpz_class x;
     explicit DSAPrivateKey(mpz_t i): x(mpz_class(i)) {}
-} ;
+};
 
-struct DSASignature{
+struct DSAKeyPair {
+    DSAPublicKey *pubkey = nullptr;
+    DSAPrivateKey *prvkey = nullptr;
+};
+
+struct DSASignature {
     mpz_class hash_m;
     mpz_class r;
     mpz_class s;

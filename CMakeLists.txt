@@ -29,4 +29,4 @@ target_link_libraries(EfficientlyGCDBoostTest boost_unit_test_framework boost_ti
 add_test(NAME EfficientlyGCDTest COMMAND EfficientlyGCDBoostTest)
 
 # TODO: DSA private key cracker and it's test case
-add_library(DSAPrivateCracker src/DSA/GetPrivate.cpp src/DSA/Cracker.cpp)
+add_library(DSAPrivateCracker src/DSA/GetPrivate.cpp src/DSA/Cracker.cpp src/DSA/Signature.cpp)
